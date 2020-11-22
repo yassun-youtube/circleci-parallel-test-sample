@@ -1,0 +1,30 @@
+version: 2.1
+jobs:
+  test:
+    docker:
+      - image: circleci/ruby:2.7.2-node
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - bundle-{{ .Environment.CACHE_VERSION }}-{{ checksum "Gemfile.lock" }}
+      - run:
+          command: bundle install
+      - save_cache:
+          key: bundle-{{ .Environment.CACHE_VERSION }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - run:
+          name: Prepare Test
+          command: circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings > /tmp/tests-to-run
+      - run:
+          name: Run Test
+          command: bundle exec rspec --format documentation --format RspecJunitFormatter --out tmp/test-results/rspec.xml $(cat /tmp/tests-to-run)
+      - store_test_results:
+          path: tmp/test-results
+workflows:
+  version: 2
+  test_workflow:
+    jobs:
+      - test
