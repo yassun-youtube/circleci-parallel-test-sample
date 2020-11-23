@@ -16,6 +16,15 @@ jobs:
           paths:
             - vendor/bundle
       - run:
+          name: echo glob
+          command: echo $(circleci tests glob "spec/**/*_spec.rb")
+      - run:
+          command: echo $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+      - run:
+          command: echo $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings --timings-type=classname)
+      - run:
+          command: echo $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split)
+      - run:
           name: Prepare Test
           command: circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings > /tmp/tests-to-run
       - run:
